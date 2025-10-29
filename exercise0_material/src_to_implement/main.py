@@ -2,7 +2,7 @@ from .pattern import Checker, Circle
 
 if __name__ == "__main__":
     print("Checker: ")
-    checker = Checker(resolution=4, tile_size=2)
+    checker = Checker(resolution=16, tile_size=3)
     checker.draw()
     checker.show()
 

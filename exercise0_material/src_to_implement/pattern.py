@@ -12,7 +12,7 @@ class Checker:
         self.tile_size = tile_size # defines the number of pixel an individual tile has in each dimension.
         self.output: np.ndarray = np.ndarray(shape=(self.resolution, self.resolution))
 
-    def draw(self):
+    def draw(self) -> np.ndarray | None:
         """creates the checkerboard pattern as a numpy array.
         The tile in the top left corner should be black. In order to avoid truncated checkerboard
         patterns, make sure your code only allows values for resolution that are evenly dividable
@@ -20,7 +20,8 @@ class Checker:
 
         # if resolution is not evenly divisible by 2, return
         if not (self.resolution % (2 * self.tile_size) == 0):
-            return None
+            print("Resolution must be divisible by (2 * tile_size). Please adjust and run again.")
+            return np.ones_like(self.output)
 
         # Represent black as 1 and white as 0
         # determine the shape of output based on resolution and tile_size 
@@ -62,14 +63,14 @@ class Checker:
         return self.output.copy() #numpy arrays are always passed per reference
         
         
-        
 
-    def show(self):
+    def show(self) -> None:
         """shows the checkerboard pattern with for example
         plt.imshow(). If you want to display a grayscale image you can use cmap = gray as
         a parameter for this function."""
 
-        plt.imshow(self.output, cmap="gray")
+        plt.imshow(self.output, cmap="gray") 
+        plt.show()
         
 
 class Circle: 
