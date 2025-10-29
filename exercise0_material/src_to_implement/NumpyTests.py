@@ -13,8 +13,8 @@ class TestCheckers(unittest.TestCase):
         self.reference_img = np.load('reference_arrays/checker.npy')
         self.reference_img2 = np.load('reference_arrays/checker2.npy')
 
-    def testPattern(self):
         # Creates a checkerboard pattern with resolution 250x250
+    def testPattern(self):
         # and a tile_size of 25 and compares it to the reference image
 
         import pattern

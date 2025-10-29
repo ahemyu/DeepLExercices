@@ -12,7 +12,7 @@ class Checker:
         self.tile_size = tile_size # defines the number of pixel an individual tile has in each dimension.
         self.output: np.ndarray = np.ndarray(shape=(self.resolution, self.resolution))
 
-    def draw(self) -> np.ndarray | None:
+    def draw(self) -> np.ndarray:
         """creates the checkerboard pattern as a numpy array.
         The tile in the top left corner should be black. In order to avoid truncated checkerboard
         patterns, make sure your code only allows values for resolution that are evenly dividable
@@ -74,11 +74,73 @@ class Checker:
         
 
 class Circle: 
-    def __init__(self):
-        pass
+    def __init__(self, resolution: int, radius: int, position: tuple[int, int]):
+        self.resolution = resolution
+        self.radius = radius
+        self.position = position
+        self.output = np.zeros((resolution, resolution))
     
-    def draw(self):
-        pass
+    def draw(self) -> np.ndarray:
+        """
+        creates a binary image of a circle as a numpy array.
+        Stores the pattern in the instance variable output and returns a copy.
+        """
+        # Think of a formula describing the circle with respect to pixel coordinates. Make yourself familiar with np.meshgrid.
+        
+        # determinig if pixel is inside circel (and thus colored white i.e. value 1)
+        # a pixel is inside the circle if its euclidean  distance from the center is smaller or equal to the radious 
+        x = np.arange(start=0, stop=self.resolution)
+        y = np.arange(start=0, stop=self.resolution)
+        xx, yy = np.meshgrid(x,y)
+        
+        # we can now use xx and yy to determine the color for each pixel with the formula
+        # spelled out formula is sqrt((x - x_center)^2 + (y - y_center)^2) 
+        
+        distance = np.sqrt((xx - self.position[0])**2 + (yy - self.position[1])**2)
+        self.output = distance <= self.radius # TODO: this will not work for border pixels 
+        
+        return self.output.copy()
 
-    def show(self):
-        pass
+    def show(self) -> None:
+
+        plt.imshow(self.output, cmap="gray") 
+        plt.show()
+
+        
+class Spectrum: 
+    def __init__(self, resolution: int):
+        self.resolution = resolution
+        self.output =  np.zeros((resolution, resolution, 3), dtype=float)
+    
+    def draw(self) -> np.ndarray:
+        """
+        creates the spectrum in Fig. 3 as a numpy array.
+        Remember that RGB images have 3 channels and that a spectrum consists of rising
+        values across a specific dimension. For each color channel, the intensity minimum and
+        maximum should be 0.0 and 1.0, respectively
+        """
+        
+        # so each pixel now needs to be 3d array (bc of the 3 rgb channels)
+        # so how do we figure out how much of which value a pixel shall have based on its coordinates? 
+        
+        # so say red is x from left to right, (normalized to [0,1])
+        # green goes from top to bottom (normalized to [0,1])
+        # blue goes diogonally from top left to bottom right (x + y) /2 (normalized to [0,1])
+        
+        x = np.arange(start=0, stop=self.resolution, dtype=float)
+        x /= self.resolution -1# normalize
+        y = np.arange(start=0, stop=self.resolution, dtype=float)
+        y /= self.resolution-1
+        
+        xx, yy = np.meshgrid(x, y)
+        
+        self.output[ :, : ,  0] = xx
+        self.output[ :, : ,  1] = yy
+        self.output[ :, : ,  2] = 1 - xx
+         
+        return self.output.copy()
+
+    def show(self) -> None:
+        
+        plt.imshow(self.output) 
+        plt.show()
