@@ -1,0 +1,11 @@
+If I told you I'm at pixel position (row=5, col=5) in your array,
+and my tile_size=10, which tile am I in? How would you calculate the tile coordinates from the pixel coordinates?
+
+
+
+for resolution = 20, tile_size = 5
+
+Pixel at position (0, 0) - which tile? What color? - First tile black
+Pixel at position (0, 5) - which tile? What color? second tile, white (bc we have resolution/tile_size tiles per row)
+Pixel at position (5, 0) - which tile? What color? - 5th total tile, white
+Pixel at position (7, 12) - which tile? What color? still 5th tile, white? 
