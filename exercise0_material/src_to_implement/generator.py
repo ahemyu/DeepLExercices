@@ -49,7 +49,7 @@ class ImageGenerator:
             np.random.shuffle(self.indices)
         
 
-    def next(self) -> tuple | None:
+    def next(self) -> tuple:
         if self.current_index >= len(self.images): 
             self.current_index = 0 #start from the beginning of the dataset
             self.epoch += 1
@@ -83,10 +83,10 @@ class ImageGenerator:
             
         batch_indices = self.indices[self.current_index:self.current_index + self.batch_size]
         
-        # Use those indices to gather the actual images
+        # use those indices to get the actual images
         images = self.images[batch_indices]
         
-        # Use the same indices to get filenames and then labels
+        # use the same indices to get filenames and then labels
         batch_filenames = [self.image_files[idx] for idx in batch_indices]
         batch_keys = [Path(f).stem for f in batch_filenames]
         labels = np.array([self.labels[k] for k in batch_keys], dtype=int)
@@ -102,7 +102,7 @@ class ImageGenerator:
         augmented_img = img.copy()
         
         if self.mirroring:
-            # Randomly decide to mirror or not (50% chance)
+            # randomly decide to mirror or not (50% chance)
             if np.random.rand() > 0.5:
                 # randomly choode between types of rotation
                 mirror_type = np.random.choice(['horizontal', 'vertical', 'both'])
@@ -134,13 +134,24 @@ class ImageGenerator:
 
     def class_name(self, x):
         # This function returns the class name for a specific input
-        #TODO: implement class name function
-        return
-
+        return self.class_dict[x]
 
     def show(self):
-        # In order to verify that the generator creates batches as required, this functions calls next to get a
-        # batch of images and labels and visualizes it.
-        #TODO: implement show method 
-        pass
+        # get a batch of images and lables
+        images, labels = self.next()
 
+        batch_size = images.shape[0]
+        # roughly square outline
+        cols = int(np.ceil(np.sqrt(batch_size)))
+        rows = int(np.ceil(batch_size / cols))
+        
+        fig, axes = plt.subplots(rows, cols, figsize=(cols * 3, rows * 3))
+        axes = axes.flatten()
+        
+        for idx in range(batch_size):
+            # normalize between 0 and 1
+            axes[idx].imshow(images[idx] / 255.0)
+            axes[idx].set_title(self.class_name(labels[idx]))
+            axes[idx].axis('off')
+        
+        plt.show()

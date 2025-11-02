@@ -18,17 +18,15 @@ if __name__ == "__main__":
     # spectrum.draw()
     # spectrum.show()   
 
+    print("Generator: \n")
     generator = ImageGenerator(
                             file_path="/home/ahemyu/drive/Master/Erst/DL/Exercices/exercise0_material/src_to_implement/exercise_data",
                             label_path="/home/ahemyu/drive/Master/Erst/DL/Exercices/exercise0_material/src_to_implement/Labels.json", 
-                            batch_size=35,
+                            batch_size=20,
                             image_size=[32,32, 3],
                             rotation=False,
                             mirroring=False,
                             shuffle=False
                             )
 
-    generator.next()
-    generator.next()
-    generator.next()
-    generator.next()
+    generator.show()
