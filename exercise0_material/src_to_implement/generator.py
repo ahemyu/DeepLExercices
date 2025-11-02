@@ -50,15 +50,9 @@ class ImageGenerator:
         
 
     def next(self) -> tuple | None:
-        #TODO: shuffling: If the shuffle flag is True, the order of your data set (= order in which the images appear) is random (Not only the order inside one batch!).
-        # Note: With shuffling, the ImageGenerator must not return duplicates within one epoch. → If your index reaches the end of your data during batch creation reset your
-        # index to point towards the first elements of your dataset and shuffle your indices again after one epoch.
         if self.current_index >= len(self.images): 
-            print("Epoch is complete. Starting with next epoch! \n")
-            #TODO: reshuflling would need to be applied here
             self.current_index = 0 #start from the beginning of the dataset
             self.epoch += 1
-            
             if self.shuffle:
                 np.random.shuffle(self.indices)
 
@@ -83,8 +77,9 @@ class ImageGenerator:
             
             # add last batch_size to self.current_index such that in next call it will be reset and epoch increased correctly
             self.current_index += self.batch_size
+            augmented = np.array([self.augment(img) for img in images])
             
-            return images, labels
+            return augmented, labels
             
         batch_indices = self.indices[self.current_index:self.current_index + self.batch_size]
         
@@ -98,15 +93,38 @@ class ImageGenerator:
         
         self.current_index += self.batch_size
 
-        return images, labels
+        
+        augmented = np.array([self.augment(img) for img in images])
+        return augmented, labels
 
 
-    def augment(self,img):
-        # this function takes a single image as an input and performs a random transformation
-        # (mirroring and/or rotation) on it and outputs the transformed image
-        #TODO: implement augmentation function
-
-        return img
+    def augment(self, img):
+        augmented_img = img.copy()
+        
+        if self.mirroring:
+            # Randomly decide to mirror or not (50% chance)
+            if np.random.rand() > 0.5:
+                # randomly choode between types of rotation
+                mirror_type = np.random.choice(['horizontal', 'vertical', 'both'])
+                
+                if mirror_type == 'horizontal':
+                    augmented_img = np.flip(augmented_img, axis=1)
+                elif mirror_type == 'vertical':
+                    augmented_img = np.flip(augmented_img, axis=0)
+                else:  # both
+                    augmented_img = np.flip(augmented_img, axis=1)
+                    augmented_img = np.flip(augmented_img, axis=0)
+        
+        if self.rotation:
+            # also include not rotating
+            angle = np.random.choice([0, 90, 180, 270])
+            
+            if angle != 0:
+                # np.rot90 rotates by 90 degrees k times
+                k = angle // 90
+                augmented_img = np.rot90(augmented_img, k=k)
+        
+        return augmented_img
 
 
     def current_epoch(self):
