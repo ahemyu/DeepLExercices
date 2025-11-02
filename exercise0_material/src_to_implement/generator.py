@@ -4,23 +4,15 @@ from pathlib import Path
 import scipy.misc
 import numpy as np
 import matplotlib.pyplot as plt
+import skimage
 
 # In this exercise task you will implement an image generator. Generator objects in python are defined as having a next function.
 # This next function returns the next generated object. In our case it returns the input of a neural network each time it gets called.
 # This input consists of a batch of images and its corresponding labels.
 class ImageGenerator:
     def __init__(self, file_path: str, label_path: str, batch_size: int, image_size: list[int], rotation: bool = False, mirroring: bool = False, shuffle: bool = False):
-        # Define all members of your generator class object as global members here.
-        # These need to include:
-        # the batch size
-        # the image size
-        # flags for different augmentations and whether the data should be shuffled for each epoch
-        # Also depending on the size of your data-set you can consider loading all images into memory here already.
-        # The labels are stored in json format and can be directly loaded as dictionary.
-        # Note that the file names correspond to the dicts of the label dictionary.
         self.class_dict = {0: 'airplane', 1: 'automobile', 2: 'bird', 3: 'cat', 4: 'deer', 5: 'dog', 6: 'frog',
                            7: 'horse', 8: 'ship', 9: 'truck'}
-        #TODO: implement constructor
         self.file_path = file_path
         self.label_path = label_path
         self.batch_size = batch_size
@@ -28,59 +20,46 @@ class ImageGenerator:
         self.rotation = rotation
         self.mirroring = mirroring
         self.shuffle = shuffle
-        self.image_files = sorted(os.listdir(file_path)) #TODO: order is not guaranteed and thus "non-determnistic"
+        self.image_files = sorted(os.listdir(file_path)) 
         # load in the images from the "file_path" folder
         self.images_list = []
+        target_height, target_width, target_channels = self.image_size
         for file in self.image_files:
             img = np.load(os.path.join(file_path, file))
+            # resize if needed
+            if (img.shape[0] != target_height or 
+                img.shape[1] != target_width):
+                img = skimage.transform.resize(img, 
+                            (target_height, target_width, target_channels),
+                            anti_aliasing=True, 
+                            preserve_range=True)
             self.images_list.append(img)
+
         self.images : np.ndarray = np.array(self.images_list)
         
         self.labels = {}
         with open(f"{label_path}", "r") as f:
             self.labels = json.load(f) #key is filename, value is label
         
-        self.num_batches = len(self.image_files) // self.batch_size
         self.epoch = 0
         self.current_index = 0 #dataset level index that keeps track at which index of the dataset we currently are
         
 
     def next(self) -> tuple | None:
-        # This function creates a batch of images and corresponding labels and returns them.
-        # In this context a "batch" of images just means a bunch, say 10 images that are forwarded at once.
-        # Note that your amount of total data might not be divisible without remainder with the batch_size.
-        # Think about how to handle such cases
-        
-        """returns one batch of the provided dataset as a tuple
-        (images, labels), where images represents a batch of images and labels an array with the
-        corresponding labels, when called. Each image of your data set should be included only
-        once in those batches until the end of one epoch. One epoch describes a run through the
-        whole data set.
-        
-        #TODO: handle resizing , use skimage.transform.resize, this is not a flag, but rather we need to check if the images are in the same size as specified in the constructor. 
-        • Note: Sometimes the images fed into a neural network are first resized. Therefore, a
-        resizing option should be included within the next() method. Do not confuse resizing
-        with reshaping! Resizing usually involves interpolation of data, reshaping is the simple
-        reordering of data."""
-        
-        #TODO: handle epochs, i.e. detect when one epoch is finished (all batches have been returned) and increment epoch counter
-        
-        print(self.current_index)
-        
+        #TODO: shuffling: If the shuffle flag is True, the order of your data set (= order in which the images appear) is random (Not only the order inside one batch!).
+        # Note: With shuffling, the ImageGenerator must not return duplicates within one epoch. → If your index reaches the end of your data during batch creation reset your
+        # index to point towards the first elements of your dataset and shuffle your indices again after one epoch.
         if self.current_index >= len(self.images): 
             print("Epoch is complete. Starting with next epoch! \n")
             #TODO: reshuflling would need to be applied here
             self.current_index = 0 #start from the beginning of the dataset
             self.epoch += 1
 
-        #TODO: Make sure all your batches have the same size. If the last batch is smaller than the others, complete that batch by reusing images from the beginning of your training data set.
-        #TODO: handle last batch in the case that last batch is smaller than batch_size (loop back to first batch and reuse as many images necessary to fill it up)
-
         images = []
         labels = []
-        
         remaining = len(self.images) - self.current_index 
-        # TODO: we need to check if there are enough samples left in the data to fill up the last batch 
+        
+        # we need to check if there are enough samples left in the data to fill up the last batch 
         if remaining < self.batch_size:
             # take al of the images we have
             remaining_imgs = self.images[self.current_index: ] # all that we have
@@ -108,7 +87,7 @@ class ImageGenerator:
             
         images = self.images[self.current_index: self.current_index + self.batch_size]
         
-        #TODO: get the corresponding labels(just the int) out of the file names (just cut of the ".npy" part), that string that is the key for the labels dict
+        # get the corresponding labels(just the int) out of the file names (just cut of the ".npy" part), that string that is the key for the labels dict
         image_file_names_with_endings = self.image_files[self.current_index : self.current_index +  self.batch_size]
         image_file_keys = [Path(f).stem for f in image_file_names_with_endings]
         labels = [self.labels[key] for key in image_file_keys]
