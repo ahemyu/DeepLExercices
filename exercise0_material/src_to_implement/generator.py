@@ -43,6 +43,10 @@ class ImageGenerator:
         
         self.epoch = 0
         self.current_index = 0 #dataset level index that keeps track at which index of the dataset we currently are
+        self.indices = np.arange(len(self.images)) # these are the indices we are going to use to implement shuffling
+        
+        if self.shuffle:
+            np.random.shuffle(self.indices)
         
 
     def next(self) -> tuple | None:
@@ -54,6 +58,9 @@ class ImageGenerator:
             #TODO: reshuflling would need to be applied here
             self.current_index = 0 #start from the beginning of the dataset
             self.epoch += 1
+            
+            if self.shuffle:
+                np.random.shuffle(self.indices)
 
         images = []
         labels = []
@@ -61,37 +68,34 @@ class ImageGenerator:
         
         # we need to check if there are enough samples left in the data to fill up the last batch 
         if remaining < self.batch_size:
+            # we are in the last batch that has too few elements
             # take al of the images we have
-            remaining_imgs = self.images[self.current_index: ] # all that we have
+            remaining_indices = self.indices[self.current_index: ] # all that we have
             # add missing ones from the start
             missing_count = self.batch_size - remaining
-            missing_imgs = self.images[0 : missing_count]
-            images = np.concatenate([remaining_imgs, missing_imgs], axis=0)
+            missing_indices = self.indices[0 : missing_count]
+            batch_indices = np.concatenate([remaining_indices, missing_indices], axis=0)
+            images = self.images[batch_indices]
             # handle labels in the same way
-            image_file_names_with_endings = self.image_files[self.current_index:]
-            remaining_keys = [Path(f).stem for f in image_file_names_with_endings]
-
-            # how many more we need from the start
-            missing_count = self.batch_size - remaining
-            missing_file_names = self.image_files[:missing_count]
-            missing_keys = [Path(f).stem for f in missing_file_names]
-
-            # concatenate remaining + missing keys into one flat batch
-            all_keys = remaining_keys + missing_keys
-            labels = np.array([self.labels[k] for k in all_keys], dtype=int)
+            batch_filenames = [self.image_files[idx] for idx in batch_indices]
+            batch_keys = [Path(f).stem for f in batch_filenames]
+            labels = np.array([self.labels[k] for k in batch_keys], dtype=int)
             
             # add last batch_size to self.current_index such that in next call it will be reset and epoch increased correctly
             self.current_index += self.batch_size
             
             return images, labels
             
-        images = self.images[self.current_index: self.current_index + self.batch_size]
+        batch_indices = self.indices[self.current_index:self.current_index + self.batch_size]
         
-        # get the corresponding labels(just the int) out of the file names (just cut of the ".npy" part), that string that is the key for the labels dict
-        image_file_names_with_endings = self.image_files[self.current_index : self.current_index +  self.batch_size]
-        image_file_keys = [Path(f).stem for f in image_file_names_with_endings]
-        labels = [self.labels[key] for key in image_file_keys]
-
+        # Use those indices to gather the actual images
+        images = self.images[batch_indices]
+        
+        # Use the same indices to get filenames and then labels
+        batch_filenames = [self.image_files[idx] for idx in batch_indices]
+        batch_keys = [Path(f).stem for f in batch_filenames]
+        labels = np.array([self.labels[k] for k in batch_keys], dtype=int)
+        
         self.current_index += self.batch_size
 
         return images, labels
