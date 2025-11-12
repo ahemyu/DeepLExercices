@@ -1,0 +1,2 @@
+class SoftMax:
+    pass

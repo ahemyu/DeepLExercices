@@ -2,10 +2,10 @@ cycler
 joblib
 kiwisolver
 matplotlib
-numpy==1.26.4
+numpy
 pyparsing
 python-dateutil
-scikit-learn==1.1.3
+scikit-learn
 scipy
 six
 scikit-image
