@@ -68,7 +68,7 @@ class TestFullyConnected1(unittest.TestCase):
 
     def test_update(self):
         layer = FullyConnected.FullyConnected(self.input_size, self.output_size)
-        layer.optimizer = Optimizers.Sgd(1)
+        layer._optimizer = Optimizers.Sgd(1)
         for _ in range(10):
             output_tensor = layer.forward(self.input_tensor)
             error_tensor = np.zeros([self.batch_size, self.output_size])
@@ -85,7 +85,7 @@ class TestFullyConnected1(unittest.TestCase):
     def test_update_bias(self):
         input_tensor = np.zeros([self.batch_size, self.input_size])
         layer = FullyConnected.FullyConnected(self.input_size, self.output_size)
-        layer.optimizer = Optimizers.Sgd(1)
+        layer._optimizer = Optimizers.Sgd(1)
         for _ in range(10):
             output_tensor = layer.forward(input_tensor)
             error_tensor = np.zeros([self.batch_size, self.output_size])

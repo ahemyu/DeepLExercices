@@ -1,2 +1,4 @@
 class BaseLayer:
-    pass
+    def __init__(self, trainable: bool):
+        self.trainable = trainable
+        
