@@ -1,24 +1,5 @@
 import numpy as np
-"""
-The cross entropy Loss is often used in classification task, typically in conjunction with SoftMax
-(or Sigmoid).
-Task:
-Implement a class CrossEntropyLoss in the file: “Loss.py” in folder “Optimization”.
-When forward propagating we now additionally need the argument label tensor for
-forward(prediction tensor, label tensor) and backward(label tensor). We don’t con-
-sider the loss function as a layer like the previous ones in our framework, thus it should not
-inherit the base layer.
- Write a constructor for this class, receiving no arguments.
- Implement a method forward(prediction tensor, label tensor) which computes the
-Loss value according the CrossEntropy Loss formula accumulated over the batch.
- Implement a method backward(label tensor) which returns the error tensor for the
-previous layer. The backpropagation starts here, hence no error tensor is needed.
-Instead, we need the label tensor.
-Hint: the same hint as before applies.
- Remember: Loops are slow in Python. Use NumPy functions instead!
-You can verify your implementation using the provided testsuite by providing the commandline
-parameter TestCrossEntropyLoss
-"""
+
 class CrossEntropyLoss:
 
     def __init__(self):

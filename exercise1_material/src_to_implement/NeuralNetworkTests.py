@@ -457,7 +457,7 @@ class TestNeuralNetwork1(unittest.TestCase):
         out = net.forward()
         out2 = net.forward()
 
-        self.assertNotEqual(out, out2,
+        self.assertFalse(np.array_equal(out, out2),
                             msg="Possible error: The Neural Network hat no access to the provided data. Make sure to "
                                 "create an attribute data_layer in the constructor. Additionally, make sure that the "
                                 "forward function calls the next() function of this attribute to get the next batch as"
