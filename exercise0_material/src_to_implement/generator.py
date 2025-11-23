@@ -1,7 +1,6 @@
 import os.path
 import json
 from pathlib import Path
-import scipy.misc
 import numpy as np
 import matplotlib.pyplot as plt
 import skimage

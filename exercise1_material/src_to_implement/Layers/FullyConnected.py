@@ -37,7 +37,6 @@ class FullyConnected(Base.BaseLayer):
         bias_col = np.ones((input_tensor.shape[0], 1))  # shape: (batch_size, 1)
         self.input_tensor = np.hstack([input_tensor, bias_col])
         
-        #TODO: not sure if I need to transpose first 
         output_tensor = self.input_tensor @ self.weights 
        
         assert(output_tensor.shape[1] == self.output_size)     

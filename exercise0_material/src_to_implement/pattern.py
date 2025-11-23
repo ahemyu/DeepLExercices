@@ -62,7 +62,6 @@ class Checker:
         print("OUTPUT: \n", self.output)
         return self.output.copy() #numpy arrays are always passed per reference
         
-        
 
     def show(self) -> None:
         """shows the checkerboard pattern with for example
@@ -138,7 +137,7 @@ class Spectrum:
         self.output[ :, : ,  1] = yy
         self.output[ :, : ,  2] = 1 - xx
          
-        return self.output.copy()
+        return self.output
 
     def show(self) -> None:
         
