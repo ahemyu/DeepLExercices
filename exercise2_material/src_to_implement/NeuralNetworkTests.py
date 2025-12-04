@@ -8,7 +8,6 @@ import NeuralNetwork
 import matplotlib.pyplot as plt
 import os
 import tabulate
-import argparse
 
 ID = 2  # identifier for dispatcher
 
