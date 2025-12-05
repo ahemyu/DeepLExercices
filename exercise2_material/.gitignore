@@ -1,1 +1,6 @@
 .venv/
+# ignore pycache contents ANYWHERE
+**/__pycache__/
+# ignore .pyc files ANYWHERE
+src_to_implement/Layers/__pycache__
+src_to_implement/Optimization/__pycache__
