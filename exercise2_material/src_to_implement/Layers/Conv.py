@@ -49,13 +49,10 @@ class Conv(Base.BaseLayer):
         b stands for the batch, c represents the channels and x, y represent the spatial dimensions.
         """
 
-        print("INPUT_TENSOR SHAPE BEFORE PADDING: /n", input_tensor.shape)
-
-
-
         # this is assuming a stride of 1, diff stride will be handled later after convolutiuon was done
         # determine dimensions and mode
         # convolution_shape is [c, m] (1D) or [c, m, n] (2D)
+        batch = input_tensor.shape[0]
         is_1d = len(self.convolution_shape) == 2
         
         # calculate padding for y
@@ -85,22 +82,45 @@ class Conv(Base.BaseLayer):
             
         #apply 0-Padding
         input_padded = np.pad(input_tensor, pad_width, mode='constant')
-        
 
-        # now correlate/convolve the paqdded input
-        input_conv = signal.
-        print("INPUT_TENSOR SHAPE After PADDING: /n", input_padded.shape)
+        # now we iterate over all batches and then over all kernels to calculate each output feature map
+        output_tensor = None
 
-        
+        if is_1d:
+            # we only have one dimension to take care of so stride also needs to be an int
+            if isinstance(self.stride_shape,tuple) or isinstance(self.stride_shape, list):
+                self.stride_shape = self.stride_shape[0]
+            output_dim = math.ceil(input_tensor.shape[2]/self.stride_shape)
+            # dim is batch, num_kernels, output_dim
+            output_tensor = np.zeros(shape=(batch, self.num_kernels, output_dim))
 
-        """
-        Hint: Using correlation in the forward and convolution/correlation in the backward pass
-        might help with the flipping of kernels.
-        Hint 2: The scipy package features a n-dimensional convolution/correlation. use signal.correlate()
-        Hint 3: Efficiency trade-offs will be necessary in this scope. For example, striding may
-        be implemented wastefully as subsampling after convolution/correlation.
-        """
-        pass
+        else: 
+            # diff dimensions for width and height
+            output_dim = (math.ceil(input_tensor.shape[2]/self.stride_shape[0]), math.ceil(input_tensor.shape[3]/self.stride_shape[1]))
+            output_tensor = np.zeros(shape=(batch, self.num_kernels, output_dim[0], output_dim[1]))
+
+        print("INPUT TENSOR SHAPE: \n", input_tensor.shape)
+        print("STRIDE SHAPE: \n", self.stride_shape)
+        print("CONVOLUTION SHAPE: \n", self.convolution_shape)
+
+        for b in range(input_padded.shape[0]):
+            for k in range(self.num_kernels):
+
+                feature_map = signal.correlate(input_padded[b], self.weights[k], mode="valid") #we need to squeeze it bec it returns [1, Y, X]
+                feature_map = np.squeeze(feature_map, axis=0)
+                feature_map += self.bias[k] # apply bias to output map
+
+                #slicing as subsampling
+                if is_1d:
+                    output_tensor[b, k, :] = feature_map[::self.stride_shape]
+                else:
+                    output_tensor[b, k, :, :] = feature_map[::self.stride_shape[0], ::self.stride_shape[1]]
+
+
+
+        print("OUTPUT TENSOR SHAPE: \n", output_tensor.shape)
+
+        return output_tensor
 
 
     def backward(self, error_tensor):
