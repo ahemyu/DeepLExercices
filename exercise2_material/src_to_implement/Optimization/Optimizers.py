@@ -24,7 +24,7 @@ class SgdWithMomentum:
         weight_tensor = np.array(weight_tensor)
         gradient_tensor = np.array(gradient_tensor)
         # if momentum is not inited yet, do it
-        if not self.momentum: 
+        if self.momentum is None: 
             self.momentum = np.zeros_like(weight_tensor)
 
         # update momentum
@@ -50,7 +50,7 @@ class Adam:
         self.iteration += 1        
 
         # we only need to check one of them as they are always used together
-        if not self.first_momentum or not self.second_momentum: 
+        if self.first_momentum is None or self.second_momentum is None: 
             self.first_momentum = np.zeros_like(weight_tensor)
             self.second_momentum = np.zeros_like(weight_tensor)
         

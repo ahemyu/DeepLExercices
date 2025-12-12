@@ -2,6 +2,7 @@ from Layers import Base
 import numpy as np
 from scipy import signal
 import math
+import copy
 
 class Conv(Base.BaseLayer):
 
@@ -17,6 +18,7 @@ class Conv(Base.BaseLayer):
         
         self.bias = np.random.uniform(size=self.num_kernels) #each filter gets one scalar bias
         self._optimizer = None
+        self._bias_optimizer = None
 
         self._gradient_weights = np.zeros_like(self.weights)
         self._gradient_bias = np.zeros_like(self.bias)
@@ -30,6 +32,7 @@ class Conv(Base.BaseLayer):
         if value is None:
                 raise ValueError("You must pass a value!")
         self._optimizer = value
+        self._bias_optimizer = copy.deepcopy(value)
 
    # these need to be calculated in backward pass 
     @property
@@ -165,7 +168,7 @@ class Conv(Base.BaseLayer):
         #update weights if optimizer is set
         if self._optimizer is not None:
             self.weights = self._optimizer.calculate_update(self.weights, self._gradient_weights)
-            self.bias = self._optimizer.calculate_update(self.bias, self._gradient_bias)
+            self.bias = self._bias_optimizer.calculate_update(self.bias, self._gradient_bias)
 
         #remove padding to match original input shape and return gradient_input
         if self.is_1d:
