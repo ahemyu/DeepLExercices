@@ -35,7 +35,7 @@ class FullyConnected(Base.BaseLayer):
     def initialize(self, weights_initializer, bias_initializer):
         """Use the given initializers to init weights and bias"""
         self.weights = weights_initializer.initialize((self.input_size, self.output_size), self.input_size, self.output_size)
-        self.bias = bias_initializer.initialize((self.input_size, self.output_size), self.input_size, self.output_size) # TODO: this is false
+        self.bias = bias_initializer.initialize((self.input_size, self.output_size), self.input_size, self.output_size) 
 
 
     def forward(self, input_tensor): 
