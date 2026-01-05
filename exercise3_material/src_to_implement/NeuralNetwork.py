@@ -27,13 +27,19 @@ class NeuralNetwork:
     def forward(self):
         #get the data and labels from data layer
         input_tensor, self.label_tensor = self.data_layer.next()
+        regularizer_loss = 0
+        
+        #TODO: Update this to include regularizer loss 
         
         for layer in self.layers: #last layer is loss 
             output = layer.forward(input_tensor)
             input_tensor = output
-        
+            # if layer is optimiziable, addthe regularizer loss
+            if layer.optimizer:
+                regularizer_loss += layer.optimizer.regularizer.norm(layer.weights)
+
         loss = self.loss_layer.forward(input_tensor, self.label_tensor)
-        return loss
+        return loss + regularizer_loss
 
 
     def backward(self):
