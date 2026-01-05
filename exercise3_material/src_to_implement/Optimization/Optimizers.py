@@ -1,6 +1,16 @@
 import numpy as np
-class Sgd: 
+
+class Optimizer():
+    """Base class for all Optimizers."""
+    def __init__(self):
+        self.regularizer = None
+
+    def add_regularizer(self, regularizer):
+        self.regularizer = regularizer
+
+class Sgd(Optimizer):
     def __init__(self, learning_rate: float):
+        super().__init__()
         self.learning_rate = learning_rate
         
     def calculate_update(self, weight_tensor, gradient_tensor):
@@ -13,8 +23,9 @@ class Sgd:
         return weight_tensor - (self.learning_rate * gradient_tensor) 
 
 
-class SgdWithMomentum: 
+class SgdWithMomentum(Optimizer): 
     def __init__(self, learning_rate: float, momentum_rate: float):
+        super().__init__()
         self.learning_rate = learning_rate
         self.momentum_rate = momentum_rate
         self.momentum = None
@@ -33,9 +44,10 @@ class SgdWithMomentum:
         return self.momentum + weight_tensor 
         
 
-class Adam: 
+class Adam(Optimizer): 
     def __init__(self,learning_rate, mu, rho):
-        
+
+        super().__init__()
         self.learning_rate = learning_rate
         self.mu = mu
         self.rho = rho

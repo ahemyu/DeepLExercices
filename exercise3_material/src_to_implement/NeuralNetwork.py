@@ -11,7 +11,18 @@ class NeuralNetwork:
         self.layers = []
         self.data_layer: Any = None
         self.loss_layer: Any = None
-        
+        self._phase = None
+
+    @property
+    def phase(self):
+        """Based on phase the Neural Network is in sets it for all of its Layers"""
+        return self._phase
+    
+    @phase.setter
+    def phase(self, value):
+        self._phase = value
+        for layer in self.layers: 
+            layer.testing_phase=value
 
     def forward(self):
         #get the data and labels from data layer
@@ -43,6 +54,7 @@ class NeuralNetwork:
 
     def train(self, iterations):
         
+        self.phase = False
         for _ in range(iterations): 
             self.loss.append(self.forward())
             self.backward()
@@ -53,13 +65,14 @@ class NeuralNetwork:
         propagates the input tensor through the network and returns the prediction of the last layer. 
         For classification tasks we typically query the probabilistic output of the SoftMax layer.
         """
+
+        self.phase = True
         for layer in self.layers[:-1]: 
             input_tensor = layer.forward(input_tensor)
         
         softmax_input = input_tensor
         
-        # TODO: query the probabilsitic output of sotmax layer (the last layer)
+        # query the probabilsitic output of sotmax layer (the last layer)
         softmax_output = self.layers[-1].forward(softmax_input)
-        
         return softmax_output
 
