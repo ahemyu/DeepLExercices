@@ -16,10 +16,7 @@ class Flatten(Base.BaseLayer):
         return np.reshape(input_tensor, (batch_size, -1))
         
     
-    def backward(self, error_tensor): 
+    def backward(self, error_tensor):
         error_tensor = np.array(error_tensor)
-        # this has shape (batch_size, channels * height * width)
-        # as we saved the shape of input, we can recover it
-        batch_size, channels, height, width = self.input_shape
-        
-        return np.reshape(error_tensor, (batch_size, channels, height, width))
+        # reshape back to original input shape
+        return np.reshape(error_tensor, self.input_shape)
