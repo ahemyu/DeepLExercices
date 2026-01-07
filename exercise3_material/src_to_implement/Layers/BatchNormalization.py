@@ -2,6 +2,8 @@ from Layers import Base
 import numpy as np
 from Layers.Helpers import compute_bn_gradients
 
+moving_avg_decay = 0.8
+
 class BatchNormalization(Base.BaseLayer):
 
     def __init__(self, channels):
@@ -47,19 +49,39 @@ class BatchNormalization(Base.BaseLayer):
         self.bias = np.zeros(self.channels)
         self._gradient_weights = np.ones_like(self.weights)
         self._gradient_bias = np.zeros_like(self.bias)
+        self.runnning_mu = None
+        self.runnning_sigma = None
+        self.initialized = False
         self._optimizer = None
 
 
     def forward(self, input_tensor): 
-        # an example shape of input could be  (200, 2, 3, 3) (so batches, channels, rows, cols)
-        #First do the Fully Connected Layer approach
-        #calculate X tilde per batch
-        # for that, calculate batch mean and std
         self.input_tensor = input_tensor
         self.mean_batch = np.mean(input_tensor, axis=0)
         self.std_batch = np.std(input_tensor, axis=0)
-        self.x_tilde = (input_tensor - self.mean_batch) / np.sqrt(self.std_batch**2 + 1e-11)
 
+        if not self.initialized:
+            # init running averages with mu and sigma from first batch
+            self.runnning_mu = self.mean_batch
+            self.runnning_sigma = self.std_batch
+            self.initialized = True
+
+        # update the running average
+        assert self.runnning_mu is not None
+        assert self.runnning_sigma is not None
+        self.runnning_mu = moving_avg_decay * self.runnning_mu + (1 - moving_avg_decay) * self.mean_batch 
+        self.runnning_sigma = moving_avg_decay * self.runnning_sigma + (1 - moving_avg_decay) * self.std_batch
+
+        if self.testing_phase: 
+            # we want to use mu and sigma from test set, but is 2 expensive to caclulate. Instead we will keep a moving avergae that then can be used during test time
+            self.x_tilde = (input_tensor - self.runnning_mu) / (np.sqrt(self.runnning_sigma ** 2 + 1e-11))
+            return self.weights * self.x_tilde + self.bias
+
+        #First do the Fully Connected Layer approach
+        #calculate X tilde per batch
+        # for that, calculate batch mean and std
+        # trainiing time
+        self.x_tilde = (input_tensor - self.mean_batch) / np.sqrt(self.std_batch**2 + 1e-11)
         #  calculate the output for this layer as x_tilde * weights (elementwise) + bias
         output = self.weights * self.x_tilde + self.bias
         
