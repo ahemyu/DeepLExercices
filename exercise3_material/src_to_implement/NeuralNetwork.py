@@ -29,14 +29,14 @@ class NeuralNetwork:
         input_tensor, self.label_tensor = self.data_layer.next()
         regularizer_loss = 0
         
-        #TODO: Update this to include regularizer loss 
-        
-        for layer in self.layers: #last layer is loss 
+        for layer in self.layers:
             output = layer.forward(input_tensor)
             input_tensor = output
-            # if layer is optimiziable, addthe regularizer loss
-            if layer.optimizer:
-                regularizer_loss += layer.optimizer.regularizer.norm(layer.weights)
+            # Add regularization loss for trainable layers with regularizers
+            # Only trainable layers have optimizers, and only some optimizers have regularizers
+            if hasattr(layer, 'optimizer') and layer.optimizer is not None:
+                if hasattr(layer.optimizer, 'regularizer') and layer.optimizer.regularizer is not None:
+                    regularizer_loss += layer.optimizer.regularizer.norm(layer.weights)
 
         loss = self.loss_layer.forward(input_tensor, self.label_tensor)
         return loss + regularizer_loss

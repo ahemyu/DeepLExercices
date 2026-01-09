@@ -37,7 +37,8 @@ class BatchNormalization(Base.BaseLayer):
     def gradient_bias(self, value):
         self._gradient_bias = value
 
-    def initialize(self):
+    def initialize(self, weights_initializer=None, bias_initializer=None):
+        #TODO: actually use the weights_initializer and bias_initializer
         self.weights = np.ones(self.channels)
         self.bias = np.zeros(self.channels)
         self._gradient_weights = np.ones_like(self.weights)
@@ -91,7 +92,6 @@ class BatchNormalization(Base.BaseLayer):
         return input_tensor
 
     def forward(self, input_tensor):
-        # TODO: if input is 4d call reformat to shape it into 2d
         self.is_4d = len(input_tensor.shape) == 4
         if self.is_4d:
             input_tensor = self.reformat(input_tensor)
@@ -106,7 +106,19 @@ class BatchNormalization(Base.BaseLayer):
             self.runnning_sigma = self.std_batch
             self.initialized = True
 
-        # update the running average
+        if self.testing_phase:
+            # we want to use mu and sigma from test set, but is 2 expensive to caclulate. Instead we will keep a moving avergae that then can be used during test time
+            assert self.runnning_sigma is not None
+            assert self.runnning_mu is not None
+            self.x_tilde = (input_tensor - self.runnning_mu) / (
+                np.sqrt(self.runnning_sigma**2 + 1e-11)
+            )
+            output = self.weights * self.x_tilde + self.bias
+            if self.is_4d:
+                output = self.reformat(output)
+            return output
+
+        # update the running average (only during training)
         assert self.runnning_mu is not None
         assert self.runnning_sigma is not None
         self.runnning_mu = (
@@ -117,13 +129,6 @@ class BatchNormalization(Base.BaseLayer):
             moving_avg_decay * self.runnning_sigma
             + (1 - moving_avg_decay) * self.std_batch
         )
-
-        if self.testing_phase:
-            # we want to use mu and sigma from test set, but is 2 expensive to caclulate. Instead we will keep a moving avergae that then can be used during test time
-            self.x_tilde = (input_tensor - self.runnning_mu) / (
-                np.sqrt(self.runnning_sigma**2 + 1e-11)
-            )
-            return self.weights * self.x_tilde + self.bias
 
         # First do the Fully Connected Layer approach
         # calculate X tilde per batch
